@@ -4,6 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,7 +24,17 @@ class ActivityVote : AppCompatActivity() {
             insets
         }
 
-        val cancelButton: Button = findViewById<Button>(R.id.cancelButton);
+
+        val votingOptInput:String = intent.getStringExtra("votingOpts").toString()
+        // Split the input into array
+        val splitVotingInput: Array<String> = splitAndUppercase(votingOptInput)
+        // DEBUG TOOL - TO BE REMOVED
+        val toast = Toast.makeText(this, splitVotingInput[0], Toast.LENGTH_SHORT)
+        toast.show()
+
+        generateSeekBars(splitVotingInput)
+
+        val cancelButton: Button = findViewById<Button>(R.id.cancelButton)
         cancelButton.setOnClickListener{
             val intent = Intent(this, MainActivity::class.java)
             retrieveView()
@@ -41,4 +55,33 @@ class ActivityVote : AppCompatActivity() {
         val savedVotingOpt = sharedPref.getString("votingOption", "")
         findViewById<EditText>(R.id.editVotingOpt).setText(savedVotingOpt)
     }
+
+    fun splitAndUppercase(input: String): Array<String> {
+        return input.split(",")
+            .map { word ->
+                word.trim().replaceFirstChar { it.uppercase() }
+            }
+            .toTypedArray()
+    }
+
+    fun generateSeekBars(splitVotingInput: Array<String>){
+        val sliderContainer = findViewById<LinearLayout>(R.id.sliderContainer)
+        if(splitVotingInput.isNotEmpty()){
+            for (votingOption in splitVotingInput) {
+                val optionLabel = TextView(this)
+                optionLabel.text = votingOption
+                optionLabel.textSize = 20f
+
+                val seekBar = SeekBar(this)
+                seekBar.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+                sliderContainer.addView(optionLabel)
+                sliderContainer.addView(seekBar)
+            }
+        }
+    }
+
 }

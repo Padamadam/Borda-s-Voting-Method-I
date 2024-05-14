@@ -31,40 +31,35 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
         val addVoteButton: Button = findViewById<Button>(R.id.addVoteButton)
 
 
-
-        addVoteButton.setOnClickListener{
+        addVoteButton.setOnClickListener {
             val intent = Intent(this, ActivityVote::class.java)
 
+            // Read new voting options input
             val votingOptInput = votingOpt.text.toString()
-            val splitVotingInput: Array<String> = splitAndUppercase(votingOptInput)
-            val toast = Toast.makeText(this, splitVotingInput[0], Toast.LENGTH_SHORT)
-            toast.show()
 
-            val sharedPref = getSharedPreferences("votingPref", MODE_PRIVATE)
-            with(sharedPref.edit()){
-                putString("votingOpt", votingOptInput)
-                apply()
+            // Check if input is empty (avoid empty string)
+            if (votingOptInput.isEmpty()) {
+                val toast = Toast.makeText(this, "No voting options given!", Toast.LENGTH_SHORT)
+                toast.show()
+            } else {
+                // Save given input (only if there's actual input)
+                val sharedPref = getSharedPreferences("votingPref", MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putString("votingOption", votingOptInput)
+                    apply()
+                }
+
+                intent.putExtra("votingOpts", votingOptInput)
+                startActivity(intent)
             }
-            startActivity(intent)
         }
     }
 
-    fun splitAndUppercase(input: String): Array<String> {
-        return input.split(",")
-            .map { word ->
-                word.trim().replaceFirstChar { it.uppercase() }
-            }
-            .toTypedArray()
+        override fun onSaveInstanceState(outState: Bundle) {
+            outState.putString("message", "This is my message to be reloaded");
+            super.onSaveInstanceState(outState);
+        }
     }
-
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("message", "This is my message to be reloaded");
-        super.onSaveInstanceState(outState);
-    }
-
-}
