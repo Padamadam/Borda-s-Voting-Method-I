@@ -67,7 +67,7 @@
         android:background="#F6EEA3"
         android:ems="10"
         android:inputType="text"
-        android:text="Enter all options seperated by comma!"
+        android:hint="Enter all options seperated by comma!"
         android:textAlignment="center"
         android:textColor="#939090"
         app:layout_constraintEnd_toEndOf="parent"

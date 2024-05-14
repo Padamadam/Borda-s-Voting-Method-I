@@ -3,6 +3,7 @@ package de.fra_uas.fb2.mobiledevices.bordasvotingmethod
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -22,14 +23,22 @@ class ActivityVote : AppCompatActivity() {
         val cancelButton: Button = findViewById<Button>(R.id.cancelButton);
         cancelButton.setOnClickListener{
             val intent = Intent(this, MainActivity::class.java)
+            retrieveView()
             startActivity(intent)
         }
 
         val confirmVoteButton: Button = findViewById<Button>(R.id.confirmVoteButton);
         confirmVoteButton.setOnClickListener{
             val intent = Intent(this, MainActivity::class.java)
+            retrieveView()
             startActivity(intent)
         }
 
+    }
+
+    fun retrieveView(){
+        val sharedPref = getSharedPreferences("votingPref", MODE_PRIVATE)
+        val savedVotingOpt = sharedPref.getString("votingOption", "")
+        findViewById<EditText>(R.id.editVotingOpt).setText(savedVotingOpt)
     }
 }
