@@ -1,6 +1,5 @@
 package de.fra_uas.fb2.mobiledevices.bordasvotingmethod
 
-
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
