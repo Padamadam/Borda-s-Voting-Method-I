@@ -1,9 +1,8 @@
 package de.fra_uas.fb2.mobiledevices.bordasvotingmethod
 
-import android.content.Intent
+
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
@@ -24,7 +23,6 @@ class ActivityVote : AppCompatActivity() {
             insets
         }
 
-
         val votingOptInput:String = intent.getStringExtra("votingOpts").toString()
         // Split the input into array
         val splitVotingInput: Array<String> = splitAndUppercase(votingOptInput)
@@ -36,27 +34,16 @@ class ActivityVote : AppCompatActivity() {
 
         val cancelButton: Button = findViewById<Button>(R.id.cancelButton)
         cancelButton.setOnClickListener{
-            val intent = Intent(this, MainActivity::class.java)
-            retrieveView()
-            startActivity(intent)
+            finish()
         }
 
-        val confirmVoteButton: Button = findViewById<Button>(R.id.confirmVoteButton);
+        val confirmVoteButton: Button = findViewById<Button>(R.id.confirmVoteButton)
         confirmVoteButton.setOnClickListener{
-            val intent = Intent(this, MainActivity::class.java)
-            retrieveView()
-            startActivity(intent)
+            finish()
         }
-
     }
 
-    fun retrieveView(){
-        val sharedPref = getSharedPreferences("votingPref", MODE_PRIVATE)
-        val savedVotingOpt = sharedPref.getString("votingOption", "")
-        findViewById<EditText>(R.id.editVotingOpt).setText(savedVotingOpt)
-    }
-
-    fun splitAndUppercase(input: String): Array<String> {
+    private fun splitAndUppercase(input: String): Array<String> {
         return input.split(",")
             .map { word ->
                 word.trim().replaceFirstChar { it.uppercase() }
@@ -64,7 +51,7 @@ class ActivityVote : AppCompatActivity() {
             .toTypedArray()
     }
 
-    fun generateSeekBars(splitVotingInput: Array<String>){
+    private fun generateSeekBars(splitVotingInput: Array<String>){
         val sliderContainer = findViewById<LinearLayout>(R.id.sliderContainer)
         if(splitVotingInput.isNotEmpty()){
             for (votingOption in splitVotingInput) {
