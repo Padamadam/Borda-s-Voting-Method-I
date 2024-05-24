@@ -39,7 +39,7 @@ class ActivityVote : AppCompatActivity() {
         toast.show()
 
         if (votingOptNum != null) {
-            generateSeekBars(splitVotingInput, votingOptNum)
+            generateSeekBars(splitVotingInput, votingOptNum, sliderContainer)
         }
 
         val cancelButton: Button = findViewById<Button>(R.id.cancelButton)
@@ -49,8 +49,6 @@ class ActivityVote : AppCompatActivity() {
 
         val confirmVoteButton: Button = findViewById<Button>(R.id.confirmVoteButton)
         confirmVoteButton.setOnClickListener {
-
-            getSeekbarValues(sliderContainer)
 
             if (isArrayUnique(seekBarValues)) {
                 // get results
@@ -70,12 +68,24 @@ class ActivityVote : AppCompatActivity() {
         }
     }
 
-    private fun getSeekbarValues(sliderContainer: LinearLayout) {
-        seekBarValues = IntArray(sliderContainer.childCount / 2) // Assuming each pair is label-seekBar
-        for (i in 0 until sliderContainer.childCount / 2) {
+    private fun getSeekbarValues(sliderContainer: LinearLayout, votingOptNum: Int): Map<String, Int> {
+        val votingOptionsMap = HashMap<String, Int>()
+
+        for (i in 0..<votingOptNum) {
+            val optionLabel = sliderContainer.getChildAt(i * 2) as TextView
             val seekBar = sliderContainer.getChildAt(i * 2 + 1) as SeekBar
-            seekBarValues[i] = seekBar.progress
+            votingOptionsMap[optionLabel.text.toString()] = seekBar.progress
         }
+
+        // Ascending order
+        val sortedEntries = votingOptionsMap.toList().sortedBy{ (_, value) -> value}.toMap()
+        val labels = sortedEntries.keys
+        val sliderScore = sortedEntries.values
+        val bordaPoints = HashMap<String, Int>()
+        for(i in 0..<votingOptNum){
+            bordaPoints[labels.elementAt(i)] = sliderScore.elementAt(i) * i
+        }
+        return bordaPoints
     }
 
     private fun isArrayUnique(array: IntArray): Boolean {
@@ -90,8 +100,7 @@ class ActivityVote : AppCompatActivity() {
             .toTypedArray()
     }
 
-    private fun generateSeekBars(splitVotingInput: Array<String>, votingOptNum: Int) {
-        val sliderContainer = findViewById<LinearLayout>(R.id.sliderContainer)
+    private fun generateSeekBars(splitVotingInput: Array<String>, votingOptNum: Int, sliderContainer: LinearLayout) {
         if (splitVotingInput.isNotEmpty()) {
             for(i in 0..votingOptNum){
 //            for (votingOption in splitVotingInput) {
@@ -114,17 +123,27 @@ class ActivityVote : AppCompatActivity() {
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                         // Handle progress change (optional)
+                        printResults(votingOptNum, sliderContainer)
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
                 })
-
                 sliderContainer.addView(optionLabel)
                 sliderContainer.addView(seekBar)
             }
         }
+    }
+
+    private fun printResults(votingOptNum: Int, sliderContainer: LinearLayout){
+        val bordaPoints: Map<String, Int> = getSeekbarValues(sliderContainer, votingOptNum)
+        val resultsText = findViewById<TextView>(R.id.votePoints)
+        var message: String = ""
+        for(i in 0..<votingOptNum) {
+            message = message + bordaPoints.keys.elementAt(i).toString() + " --> " +
+                    bordaPoints.values.elementAt(i) + "\n"
+        }
+        resultsText.text = message
     }
 
 }
