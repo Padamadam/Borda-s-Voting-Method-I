@@ -21,7 +21,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var getResult: ActivityResultLauncher<Intent>
 
     private var toVotingActivity = Bundle()
-    private var fromVotingActivity = Bundle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +33,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         val votingOpt = findViewById<EditText>(R.id.editVotingOpt)
-
-        val addVoteButton: Button = findViewById<Button>(R.id.addVoteButton)
+        val votingOptNum = findViewById<EditText>(R.id.editOptNumber)
+        val addVoteButton = findViewById<Button>(R.id.addVoteButton)
 
         addVoteButton.setOnClickListener {
             val intent = Intent(this, ActivityVote::class.java)
@@ -47,12 +46,14 @@ class MainActivity : AppCompatActivity() {
             if (votingOptInput.isEmpty()) {
                 val toast = Toast.makeText(this, "No voting options given!", Toast.LENGTH_SHORT)
                 toast.show()
+            }else if(votingOptNum.text.toString().isEmpty()) {
+                val toast = Toast.makeText(this, "No voting options number given!", Toast.LENGTH_SHORT)
+                toast.show()
             } else {
-
                 toVotingActivity.putString("votingOpts", votingOptInput)
+                toVotingActivity.putString("votingOptNum", votingOptNum.text.toString())
                 intent.putExtras(toVotingActivity)
                 getResult.launch(intent)
-
             }
         }
 

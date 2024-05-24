@@ -26,10 +26,11 @@ class ActivityVote : AppCompatActivity() {
             insets
         }
 
-        var sliderContainer: LinearLayout = findViewById<LinearLayout>(R.id.sliderContainer)
+        val sliderContainer: LinearLayout = findViewById<LinearLayout>(R.id.sliderContainer)
 
         val b: Bundle? = intent.extras
         val votingOptInput: String = b?.getString("votingOpts").toString()
+        val votingOptNum: Int? = b?.getString("votingOptNum")?.toInt()
 
         // Split the input into array
         val splitVotingInput: Array<String> = splitAndUppercase(votingOptInput)
@@ -37,7 +38,9 @@ class ActivityVote : AppCompatActivity() {
         val toast = Toast.makeText(this, splitVotingInput[0], Toast.LENGTH_SHORT)
         toast.show()
 
-        generateSeekBars(splitVotingInput)
+        if (votingOptNum != null) {
+            generateSeekBars(splitVotingInput, votingOptNum)
+        }
 
         val cancelButton: Button = findViewById<Button>(R.id.cancelButton)
         cancelButton.setOnClickListener{
@@ -79,7 +82,6 @@ class ActivityVote : AppCompatActivity() {
         return array.toSet().size == array.size
     }
 
-
     private fun splitAndUppercase(input: String): Array<String> {
         return input.split(",")
             .map { word ->
@@ -88,13 +90,19 @@ class ActivityVote : AppCompatActivity() {
             .toTypedArray()
     }
 
-    private fun generateSeekBars(splitVotingInput: Array<String>) {
+    private fun generateSeekBars(splitVotingInput: Array<String>, votingOptNum: Int) {
         val sliderContainer = findViewById<LinearLayout>(R.id.sliderContainer)
         if (splitVotingInput.isNotEmpty()) {
-            for (votingOption in splitVotingInput) {
+            for(i in 0..votingOptNum){
+//            for (votingOption in splitVotingInput) {
                 val optionLabel = TextView(this)
-                optionLabel.text = votingOption
-                optionLabel.textSize = 20f
+                if(i+1 <= splitVotingInput.size) {
+                    optionLabel.text = splitVotingInput[i]
+                }else{
+                    optionLabel.text = "Option" + " " + i.toString()
+                }
+
+                optionLabel.textSize = 16f
 
                 val seekBar = SeekBar(this)
                 seekBar.layoutParams = LinearLayout.LayoutParams(
