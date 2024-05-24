@@ -20,6 +20,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var getResult: ActivityResultLauncher<Intent>
 
+    private var toVotingActivity = Bundle()
+    private var fromVotingActivity = Bundle()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,17 +35,9 @@ class MainActivity : AppCompatActivity() {
 
         val votingOpt = findViewById<EditText>(R.id.editVotingOpt)
 
-        if (savedInstanceState != null) {
-            val votingOptText = savedInstanceState.getString("votingOpt")
-            votingOpt.setText(votingOptText)
-        }
-
-
         val addVoteButton: Button = findViewById<Button>(R.id.addVoteButton)
 
-
         addVoteButton.setOnClickListener {
-
             val intent = Intent(this, ActivityVote::class.java)
 
             // Read new voting options input
@@ -54,7 +49,8 @@ class MainActivity : AppCompatActivity() {
                 toast.show()
             } else {
 
-                intent.putExtra("votingOpts", votingOptInput)
+                toVotingActivity.putString("votingOpts", votingOptInput)
+                intent.putExtras(toVotingActivity)
                 getResult.launch(intent)
 
             }
@@ -65,7 +61,14 @@ class MainActivity : AppCompatActivity() {
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 //  you will get result here in result.data
+                val intent = result.data
+                val b : Bundle? = intent?.extras
+                val votingResults = b?.getIntArray("votingResults")
+                val vR = Toast.makeText(this, votingResults?.get(1)?.toString(), Toast.LENGTH_SHORT)
+                vR.show()
+
             }
+            // if (result.resultCode == Activity.RESULT_CANCELED) {
         }
     }
 
