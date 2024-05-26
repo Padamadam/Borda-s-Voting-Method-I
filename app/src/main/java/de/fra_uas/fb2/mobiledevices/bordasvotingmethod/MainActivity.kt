@@ -64,9 +64,16 @@ class MainActivity : AppCompatActivity() {
                 //  you will get result here in result.data
                 val intent = result.data
                 val b : Bundle? = intent?.extras
-                val votingResults = b?.getIntArray("votingResults")
-                val vR = Toast.makeText(this, votingResults?.get(1)?.toString(), Toast.LENGTH_SHORT)
-                vR.show()
+                val votingResultsKeys = b?.getStringArray("votingResultsKeys")
+                val votingResultsValues = b?.getIntArray("votingResultsValues")
+                if(votingResultsKeys == null){
+                    Toast.makeText(this, "YOU GOT NULL RESULT", Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    Toast.makeText(this, votingResultsKeys.elementAt(3), Toast.LENGTH_SHORT).show()
+                }
+//                val vR = Toast.makeText(this, votingResults?.get(1)?.toString(), Toast.LENGTH_SHORT)
+//                vR.show()
 
             }
             // if (result.resultCode == Activity.RESULT_CANCELED) {

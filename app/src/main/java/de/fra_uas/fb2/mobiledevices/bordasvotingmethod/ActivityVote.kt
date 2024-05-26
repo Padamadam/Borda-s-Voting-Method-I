@@ -14,7 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 
 class ActivityVote : AppCompatActivity() {
 
-    private var seekBarValues: IntArray = IntArray(0)
+    private var bordaPoints = HashMap<String, Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +26,7 @@ class ActivityVote : AppCompatActivity() {
             insets
         }
 
-        val sliderContainer: LinearLayout = findViewById<LinearLayout>(R.id.sliderContainer)
+        val sliderContainer: LinearLayout = findViewById(R.id.sliderContainer)
 
         val b: Bundle? = intent.extras
         val votingOptInput: String = b?.getString("votingOpts").toString()
@@ -42,22 +42,17 @@ class ActivityVote : AppCompatActivity() {
             generateSeekBars(splitVotingInput, votingOptNum, sliderContainer)
         }
 
-        val cancelButton: Button = findViewById<Button>(R.id.cancelButton)
+        val cancelButton: Button = findViewById(R.id.cancelButton)
         cancelButton.setOnClickListener{
             finish()
         }
 
-        val confirmVoteButton: Button = findViewById<Button>(R.id.confirmVoteButton)
+        val confirmVoteButton: Button = findViewById(R.id.confirmVoteButton)
         confirmVoteButton.setOnClickListener {
-
-            if (isArrayUnique(seekBarValues)) {
-                // get results
-                val toast2 = Toast.makeText(this, seekBarValues[1].toString(), Toast.LENGTH_SHORT)
-                toast2.show()
-
-
-                val data: Intent = Intent()
-                data.putExtra("votingResults", seekBarValues)
+            if (isArrayUnique(bordaPoints.values.toIntArray())) {
+                val data = Intent()
+                data.putExtra("votingResultsKeys", bordaPoints.keys.toTypedArray())
+                data.putExtra("votingResultsValues", bordaPoints.values.toIntArray())
                 setResult(RESULT_OK, data)
                 finish()
 
@@ -68,7 +63,7 @@ class ActivityVote : AppCompatActivity() {
         }
     }
 
-    private fun getSeekbarValues(sliderContainer: LinearLayout, votingOptNum: Int): Map<String, Int> {
+    private fun getSeekbarValues(sliderContainer: LinearLayout, votingOptNum: Int): HashMap<String, Int> {
         val votingOptionsMap = HashMap<String, Int>()
 
         for (i in 0..<votingOptNum) {
@@ -79,11 +74,17 @@ class ActivityVote : AppCompatActivity() {
 
         // Ascending order
         val sortedEntries = votingOptionsMap.toList().sortedBy{ (_, value) -> value}.toMap()
+
         val labels = sortedEntries.keys
         val sliderScore = sortedEntries.values
-        val bordaPoints = HashMap<String, Int>()
+        val duplicates = getDuplicates(sliderScore)
+
         for(i in 0..<votingOptNum){
-            bordaPoints[labels.elementAt(i)] = sliderScore.elementAt(i) * i
+            if(!duplicates.contains(sliderScore.elementAt(i))){
+                bordaPoints[labels.elementAt(i)] = i
+            }else {
+                bordaPoints[labels.elementAt(i)] = -1   // -1 means the value is being repeated
+            }
         }
         return bordaPoints
     }
@@ -102,16 +103,18 @@ class ActivityVote : AppCompatActivity() {
 
     private fun generateSeekBars(splitVotingInput: Array<String>, votingOptNum: Int, sliderContainer: LinearLayout) {
         if (splitVotingInput.isNotEmpty()) {
-            for(i in 0..votingOptNum){
-//            for (votingOption in splitVotingInput) {
+            for(i in 0..<votingOptNum){
+//            for (votingOption in splitVotingInput) {s
                 val optionLabel = TextView(this)
                 if(i+1 <= splitVotingInput.size) {
                     optionLabel.text = splitVotingInput[i]
                 }else{
-                    optionLabel.text = "Option" + " " + i.toString()
+                    val message = "Option " + (i+1).toString()
+                    optionLabel.text = message
                 }
 
                 optionLabel.textSize = 16f
+                optionLabel.setPadding(8, 0, 0, 0)
 
                 val seekBar = SeekBar(this)
                 seekBar.layoutParams = LinearLayout.LayoutParams(
@@ -123,7 +126,8 @@ class ActivityVote : AppCompatActivity() {
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                         // Handle progress change (optional)
-                        printResults(votingOptNum, sliderContainer)
+                        bordaPoints = getSeekbarValues(sliderContainer, votingOptNum)
+                        printResults(votingOptNum)
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -135,15 +139,35 @@ class ActivityVote : AppCompatActivity() {
         }
     }
 
-    private fun printResults(votingOptNum: Int, sliderContainer: LinearLayout){
-        val bordaPoints: Map<String, Int> = getSeekbarValues(sliderContainer, votingOptNum)
+    private fun getDuplicates(sliderScore: Collection<Int>): MutableList<Int> {
+        val valueCounts = HashMap<Int, Int>()
+        val repeatedValues = mutableListOf<Int>()
+
+        for (value in sliderScore) {
+            val currentCount = valueCounts.getOrDefault(value, 0) // Get existing count (0 if not present)
+            valueCounts[value] = currentCount + 1 // Update count
+
+            if (currentCount > 0) { // Check if this is the second or more occurrence
+                repeatedValues.add(value)
+            }
+        }
+        return repeatedValues
+    }
+
+    private fun printResults(votingOptNum: Int){
         val resultsText = findViewById<TextView>(R.id.votePoints)
-        var message: String = ""
+        var message = ""
         for(i in 0..<votingOptNum) {
-            message = message + bordaPoints.keys.elementAt(i).toString() + " --> " +
-                    bordaPoints.values.elementAt(i) + "\n"
+            message = if (bordaPoints.values.elementAt(i) == -1) {
+                message + bordaPoints.keys.elementAt(i).toString() +
+                        " --> <not unique>\n"
+            } else {
+                message + bordaPoints.keys.elementAt(i).toString() + " --> " +
+                        bordaPoints.values.elementAt(i) + "\n"
+            }
         }
         resultsText.text = message
+        resultsText.setPadding(8, 0, 0, 0)
     }
 
 }
