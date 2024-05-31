@@ -15,7 +15,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.setPadding
 
 
 class MainActivity : AppCompatActivity() {
@@ -50,10 +49,11 @@ class MainActivity : AppCompatActivity() {
             val votingOptInput = votingOpt.text.toString()
 
             // Check if input is empty (avoid empty string)
-            if (votingOptInput.isEmpty()) {
-                val toast = Toast.makeText(this, getString(R.string.no_voting_options), Toast.LENGTH_SHORT)
-                toast.show()
-            } else if (votingOptNum.text.toString().isEmpty()) {
+//            if (votingOptInput.isEmpty()) {
+//                val toast = Toast.makeText(this, getString(R.string.no_voting_options), Toast.LENGTH_SHORT)
+//                toast.show()
+//            } else
+            if (votingOptNum.text.toString().isEmpty()) {
                 val toast =
                     Toast.makeText(this, getString(R.string.no_voting_opt_number), Toast.LENGTH_SHORT)
                 toast.show()
@@ -67,8 +67,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         startOverButton.setOnClickListener{
+            // clear number of given votes
             voteCnt = 0
-            votesCntView.text = ""
+            votesCntView.text = voteCnt.toString()
+
+            // clear voting options number
+            votingOptNum.text.clear()
+
+            // clear all voting options
+            votingOpt.text.clear()
+
+            // clear voting results
+            totalVotingResult.clear()
+
+            // update display
+            displayTotalResults(showVotingResults, showScoreField)
+
         }
 
 
@@ -83,51 +97,75 @@ class MainActivity : AppCompatActivity() {
                 val votingResultsKeys = b?.getStringArray("votingResultsKeys")
                 val votingResultsValues = b?.getIntArray("votingResultsValues")
 
-                voteCnt += 1
-                votesCntView.text = voteCnt.toString()
+                if (votingResultsKeys != null && votingResultsValues != null &&
+                    votingResultsKeys.size == votingResultsValues.size) {
+                    val obtainedVote = HashMap<String, Int>()
+                    for (i in votingResultsKeys.indices) {
+                        obtainedVote[votingResultsKeys[i]] = votingResultsValues[i]
+                    }
 
-                if (votingResultsKeys == null) {
-                    Toast.makeText(this, "YOU GOT NULL RESULT", Toast.LENGTH_SHORT).show()
+                    // Call updateTotalResults to process the obtained votes
+                    updateTotalResults(obtainedVote)
+                    voteCnt += 1
+                    votesCntView.text = voteCnt.toString()
+
+                    // if the showScoreField was previously checked, update the display
+                    displayTotalResults(showVotingResults, showScoreField)
+
                 } else {
-                    Toast.makeText(this, votingResultsKeys.elementAt(3), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Invalid voting results data", Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
         showVotingResults.setOnClickListener {
-            val showResults = showVotingResults.isChecked
-            if (showResults) {
-                // Display existing total voting results if available
-                displayTotalResults(showScoreField)
-            } else {
-                // Clear the result view if showVotingResults is off
-                showScoreField.text = ""
-            }
+            displayTotalResults(showVotingResults, showScoreField)
         }
     }
 
-        private fun displayTotalResults(showScoreField: TextView) {
+    private fun displayTotalResults(showVotingResults: Switch, showScoreField: TextView) {
+        if(showVotingResults.isChecked) {
+            var message = ""
             if (totalVotingResult.isEmpty()) {
-                showScoreField.text = getString(R.string.no_results_yet)
-                showScoreField.setPadding(8, 8, 0, 0)
+                message = getString(R.string.no_results_yet)
             } else {
-                // Build a string to display results (consider formatting)
+                val sortedBordaPoints = totalVotingResult.entries.sortedBy { it.value }.toMutableList()
+                for (entry in sortedBordaPoints) {
+                    val key = entry.key
+                    val value = entry.value
+                    message += if (value == -1) {
+                        "$key ${getString(R.string.not_unique)}\n"
+                    } else {
+                        "$key --> $value\n"
+                    }
+                }
+            }
+            showScoreField.text = message
+            showScoreField.setPadding(8, 8, 0, 0)
+        }else{
+            // Clear the result view if showVotingResults is off
+            showScoreField.text = ""
+        }
+    }
+
+    private fun splitAndUppercase(input: String): Array<String> {
+        return input.split(",")
+            .map { word ->
+                word.trim().replaceFirstChar { it.uppercase() }
+            }
+            .toTypedArray()
+    }
+
+    private fun updateTotalResults(obtainedVote: HashMap<String, Int>) {
+        for (candidate in obtainedVote.keys) {
+            // Check if candidate already exists in totalVotingResult
+            if (totalVotingResult.containsKey(candidate)) {
+                // Add the new vote count to the existing count
+                totalVotingResult[candidate] = totalVotingResult[candidate]!! + obtainedVote[candidate]!!
+            } else {
+                // Add the new candidate and vote count to totalVotingResult
+                totalVotingResult[candidate] = obtainedVote[candidate]!!
             }
         }
-
-        private fun splitAndUppercase(input: String): Array<String> {
-            return input.split(",")
-                .map { word ->
-                    word.trim().replaceFirstChar { it.uppercase() }
-                }
-                .toTypedArray()
-        }
-
-//        private fun updateTotalScore(obtainedVote: HashMap<String, Int>){
-//
-//        }
-//        override fun onSaveInstanceState(outState: Bundle) {
-//            outState.putString("message", "This is my message to be reloaded")
-//            super.onSaveInstanceState(outState)
-//        }
     }
+}

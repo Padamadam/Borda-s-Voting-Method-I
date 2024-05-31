@@ -27,30 +27,35 @@ class ActivityVote : AppCompatActivity() {
         }
 
         val sliderContainer: LinearLayout = findViewById(R.id.sliderContainer)
+        val cancelButton: Button = findViewById(R.id.cancelButton)
+        val confirmVoteButton: Button = findViewById(R.id.confirmVoteButton)
 
         val b: Bundle? = intent.extras
         val votingOptInput: Array<out String>? = b?.getStringArray("votingOpts")
         val votingOptNum: Int? = b?.getString("votingOptNum")?.toInt()
 
-        // DEBUG TOOL - TO BE REMOVED
-        val toast = Toast.makeText(this, votingOptInput?.get(0), Toast.LENGTH_SHORT)
-        toast.show()
+//        // DEBUG TOOL - TO BE REMOVED
+//        val toast = Toast.makeText(this, votingOptInput?.get(0), Toast.LENGTH_SHORT)
+//        toast.show()
 
         if (votingOptNum != null) {
             generateSeekBars(votingOptInput, votingOptNum, sliderContainer)
         }
 
-        val cancelButton: Button = findViewById(R.id.cancelButton)
         cancelButton.setOnClickListener{
             finish()
         }
 
-        val confirmVoteButton: Button = findViewById(R.id.confirmVoteButton)
         confirmVoteButton.setOnClickListener {
             if (isArrayUnique(bordaPoints.values.toIntArray())) {
                 val data = Intent()
-                data.putExtra("votingResultsKeys", bordaPoints.keys.toTypedArray())
-                data.putExtra("votingResultsValues", bordaPoints.values.toIntArray())
+
+                val sortedBordaPoints = bordaPoints.entries.sortedBy { it.value }.toMutableList()
+                val sortedKeys = sortedBordaPoints.map { it.key }.toTypedArray()
+                val sortedValues = sortedBordaPoints.map { it.value }.toIntArray()
+
+                data.putExtra("votingResultsKeys", sortedKeys)
+                data.putExtra("votingResultsValues", sortedValues)
                 setResult(RESULT_OK, data)
                 finish()
 
@@ -61,7 +66,7 @@ class ActivityVote : AppCompatActivity() {
         }
     }
 
-    private fun getSeekbarValues(sliderContainer: LinearLayout, votingOptNum: Int): HashMap<String, Int> {
+    private fun getSeekbarValues(sliderContainer: LinearLayout, votingOptNum: Int){
         val votingOptionsMap = HashMap<String, Int>()
 
         for (i in 0..<votingOptNum) {
@@ -71,20 +76,22 @@ class ActivityVote : AppCompatActivity() {
         }
 
         // Ascending order
-        val sortedEntries = votingOptionsMap.toList().sortedBy{ (_, value) -> value}.toMap()
+        val sortedEntries = votingOptionsMap.entries.sortedBy { it.value }.toMutableList()
 
-        val labels = sortedEntries.keys
-        val sliderScore = sortedEntries.values
-        val duplicates = getDuplicates(sliderScore)
+        val duplicates = getDuplicates(sortedEntries.map { it.value })
 
-        for(i in 0..<votingOptNum){
-            if(!duplicates.contains(sliderScore.elementAt(i))){
-                bordaPoints[labels.elementAt(i)] = i
-            }else {
-                bordaPoints[labels.elementAt(i)] = -1   // -1 means the value is being repeated
+
+        for (i in sortedEntries.indices) {
+            val entry = sortedEntries[i]
+            val key = entry.key
+            val value = entry.value
+
+            if (!duplicates.contains(value)) {
+                bordaPoints[key] = i
+            } else {
+                bordaPoints[key] = -1
             }
         }
-        return bordaPoints
     }
 
     private fun isArrayUnique(array: IntArray): Boolean {
@@ -96,8 +103,11 @@ class ActivityVote : AppCompatActivity() {
             if (splitVotingInput.isNotEmpty()) {
                 for(i in 0..<votingOptNum){
                     val optionLabel = TextView(this)
-                    if(i+1 <= splitVotingInput.size) {
-                        optionLabel.text = splitVotingInput.get(i)
+                    // access 0 in order to prevent out of bound access
+                    if(splitVotingInput[0].isEmpty() && i == 0){
+                        optionLabel.text = getString(R.string.option) + " 0"
+                    }else if(i+1 <= splitVotingInput.size) {
+                        optionLabel.text = splitVotingInput[i]
                     }else{
                         val message = getString(R.string.option) + " " + (i+1).toString()
                         optionLabel.text = message
@@ -115,9 +125,9 @@ class ActivityVote : AppCompatActivity() {
                     // Add OnSeekBarChangeListener to collect seek bar value
                     seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                            // Handle progress change (optional)
-                            bordaPoints = getSeekbarValues(sliderContainer, votingOptNum)
-                            printResults(votingOptNum)
+                            // update bordaPoints map
+                            getSeekbarValues(sliderContainer, votingOptNum)
+                            printResults()
                         }
 
                         override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -145,16 +155,19 @@ class ActivityVote : AppCompatActivity() {
         return repeatedValues
     }
 
-    private fun printResults(votingOptNum: Int){
+    private fun printResults() {
         val resultsText = findViewById<TextView>(R.id.votePoints)
         var message = ""
-        for(i in 0..<votingOptNum) {
-            message = if (bordaPoints.values.elementAt(i) == -1) {
-                message + bordaPoints.keys.elementAt(i).toString() +
-                        getString(R.string.not_unique) + "\n"
+
+        val sortedBordaPoints = bordaPoints.entries.sortedBy { it.value }.toMutableList()
+
+        for (entry in sortedBordaPoints) {
+            val key = entry.key
+            val value = entry.value
+            message += if (value == -1) {
+                "$key ${getString(R.string.not_unique)}\n"
             } else {
-                message + bordaPoints.keys.elementAt(i).toString() + " --> " +
-                        bordaPoints.values.elementAt(i) + "\n"
+                "$key --> $value\n"
             }
         }
         resultsText.text = message
