@@ -29,17 +29,15 @@ class ActivityVote : AppCompatActivity() {
         val sliderContainer: LinearLayout = findViewById(R.id.sliderContainer)
 
         val b: Bundle? = intent.extras
-        val votingOptInput: String = b?.getString("votingOpts").toString()
+        val votingOptInput: Array<out String>? = b?.getStringArray("votingOpts")
         val votingOptNum: Int? = b?.getString("votingOptNum")?.toInt()
 
-        // Split the input into array
-        val splitVotingInput: Array<String> = splitAndUppercase(votingOptInput)
         // DEBUG TOOL - TO BE REMOVED
-        val toast = Toast.makeText(this, splitVotingInput[0], Toast.LENGTH_SHORT)
+        val toast = Toast.makeText(this, votingOptInput?.get(0), Toast.LENGTH_SHORT)
         toast.show()
 
         if (votingOptNum != null) {
-            generateSeekBars(splitVotingInput, votingOptNum, sliderContainer)
+            generateSeekBars(votingOptInput, votingOptNum, sliderContainer)
         }
 
         val cancelButton: Button = findViewById(R.id.cancelButton)
@@ -57,7 +55,7 @@ class ActivityVote : AppCompatActivity() {
                 finish()
 
             }else{
-                val notUniqueTxt = Toast.makeText(this, "The votes are not unique!", Toast.LENGTH_SHORT)
+                val notUniqueTxt = Toast.makeText(this, getString(R.string.not_unique_toast), Toast.LENGTH_SHORT)
                 notUniqueTxt.show()
             }
         }
@@ -93,48 +91,41 @@ class ActivityVote : AppCompatActivity() {
         return array.toSet().size == array.size
     }
 
-    private fun splitAndUppercase(input: String): Array<String> {
-        return input.split(",")
-            .map { word ->
-                word.trim().replaceFirstChar { it.uppercase() }
-            }
-            .toTypedArray()
-    }
-
-    private fun generateSeekBars(splitVotingInput: Array<String>, votingOptNum: Int, sliderContainer: LinearLayout) {
-        if (splitVotingInput.isNotEmpty()) {
-            for(i in 0..<votingOptNum){
-//            for (votingOption in splitVotingInput) {s
-                val optionLabel = TextView(this)
-                if(i+1 <= splitVotingInput.size) {
-                    optionLabel.text = splitVotingInput[i]
-                }else{
-                    val message = "Option " + (i+1).toString()
-                    optionLabel.text = message
-                }
-
-                optionLabel.textSize = 16f
-                optionLabel.setPadding(8, 0, 0, 0)
-
-                val seekBar = SeekBar(this)
-                seekBar.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-
-                // Add OnSeekBarChangeListener to collect seek bar value
-                seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                        // Handle progress change (optional)
-                        bordaPoints = getSeekbarValues(sliderContainer, votingOptNum)
-                        printResults(votingOptNum)
+    private fun generateSeekBars(splitVotingInput: Array<out String>?, votingOptNum: Int, sliderContainer: LinearLayout) {
+        if (splitVotingInput != null) {
+            if (splitVotingInput.isNotEmpty()) {
+                for(i in 0..<votingOptNum){
+                    val optionLabel = TextView(this)
+                    if(i+1 <= splitVotingInput.size) {
+                        optionLabel.text = splitVotingInput.get(i)
+                    }else{
+                        val message = getString(R.string.option) + " " + (i+1).toString()
+                        optionLabel.text = message
                     }
 
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-                })
-                sliderContainer.addView(optionLabel)
-                sliderContainer.addView(seekBar)
+                    optionLabel.textSize = 16f
+                    optionLabel.setPadding(8, 0, 0, 0)
+
+                    val seekBar = SeekBar(this)
+                    seekBar.layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+
+                    // Add OnSeekBarChangeListener to collect seek bar value
+                    seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                            // Handle progress change (optional)
+                            bordaPoints = getSeekbarValues(sliderContainer, votingOptNum)
+                            printResults(votingOptNum)
+                        }
+
+                        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                    })
+                    sliderContainer.addView(optionLabel)
+                    sliderContainer.addView(seekBar)
+                }
             }
         }
     }
@@ -160,7 +151,7 @@ class ActivityVote : AppCompatActivity() {
         for(i in 0..<votingOptNum) {
             message = if (bordaPoints.values.elementAt(i) == -1) {
                 message + bordaPoints.keys.elementAt(i).toString() +
-                        " --> <not unique>\n"
+                        getString(R.string.not_unique) + "\n"
             } else {
                 message + bordaPoints.keys.elementAt(i).toString() + " --> " +
                         bordaPoints.values.elementAt(i) + "\n"
@@ -169,5 +160,4 @@ class ActivityVote : AppCompatActivity() {
         resultsText.text = message
         resultsText.setPadding(8, 0, 0, 0)
     }
-
 }

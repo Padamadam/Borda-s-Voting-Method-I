@@ -1,3 +1,29 @@
 <resources>
     <string name="app_name">Borda\'s Voting Method</string>
+
+    <string name="no_voting_options">No voting options given!</string>
+    <string name="no_voting_opt_number">No voting options number given!</string>
+
+    <string name="no_results_yet">No voting results yet</string>
+    <string name="not_unique"> --> &#60;not unique
+&#62;</string>
+    <string name="option">Option</string>
+    <string name="not_unique_toast">The votes are not unique!</string>
+
+<!--    activity_main -->
+    <string name="bordas_method">Borda\'s Method</string>
+    <string name="number_of_opts">Number of options:</string>
+    <string name="add_vote">Add Vote</string>
+    <string name="start_over">Start Over</string>
+    <string name="show_voting_results">Show Voting Results</string>
+    <string name="votes_count">Votes: %d</string>
+    <string name="voting_options">Voting options:</string>
+    <string name="enter_all_options_seperated_by_comma">Enter all options separated by comma!</string>
+    <string name="number_of_votes_so_far">Number of votes so far:</string>
+
+<!--    activity_vote -->
+    <string name="cancel">CANCEL</string>
+    <string name="confirm_your_vote">CONFIRM YOUR VOTE</string>
+    <string name="your_preferences">Your preferences</string>
+    <string name="your_borda_vote">Your Borda Vote</string>
 </resources>

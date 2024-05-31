@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Switch
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
@@ -13,13 +15,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-
+import androidx.core.view.setPadding
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var getResult: ActivityResultLauncher<Intent>
-
+    private var totalVotingResult = HashMap<String, Int>()
     private var toVotingActivity = Bundle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,9 +34,14 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        var voteCnt = 0
         val votingOpt = findViewById<EditText>(R.id.editVotingOpt)
         val votingOptNum = findViewById<EditText>(R.id.editOptNumber)
         val addVoteButton = findViewById<Button>(R.id.addVoteButton)
+        val startOverButton = findViewById<Button>(R.id.startButton)
+        val showVotingResults = findViewById<Switch>(R.id.showSwitch)
+        val votesCntView = findViewById<TextView>(R.id.votesNumberView)
+        val showScoreField = findViewById<TextView>(R.id.resultView)
 
         addVoteButton.setOnClickListener {
             val intent = Intent(this, ActivityVote::class.java)
@@ -44,44 +51,83 @@ class MainActivity : AppCompatActivity() {
 
             // Check if input is empty (avoid empty string)
             if (votingOptInput.isEmpty()) {
-                val toast = Toast.makeText(this, "No voting options given!", Toast.LENGTH_SHORT)
+                val toast = Toast.makeText(this, getString(R.string.no_voting_options), Toast.LENGTH_SHORT)
                 toast.show()
-            }else if(votingOptNum.text.toString().isEmpty()) {
-                val toast = Toast.makeText(this, "No voting options number given!", Toast.LENGTH_SHORT)
+            } else if (votingOptNum.text.toString().isEmpty()) {
+                val toast =
+                    Toast.makeText(this, getString(R.string.no_voting_opt_number), Toast.LENGTH_SHORT)
                 toast.show()
             } else {
-                toVotingActivity.putString("votingOpts", votingOptInput)
+                val votingOptArray: Array<String> = splitAndUppercase(votingOptInput)
+                toVotingActivity.putStringArray("votingOpts", votingOptArray)
                 toVotingActivity.putString("votingOptNum", votingOptNum.text.toString())
                 intent.putExtras(toVotingActivity)
                 getResult.launch(intent)
             }
         }
 
+        startOverButton.setOnClickListener{
+            voteCnt = 0
+            votesCntView.text = ""
+        }
+
+
+
         getResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
-                //  you will get result here in result.data
+
                 val intent = result.data
-                val b : Bundle? = intent?.extras
+                val b: Bundle? = intent?.extras
                 val votingResultsKeys = b?.getStringArray("votingResultsKeys")
                 val votingResultsValues = b?.getIntArray("votingResultsValues")
-                if(votingResultsKeys == null){
+
+                voteCnt += 1
+                votesCntView.text = voteCnt.toString()
+
+                if (votingResultsKeys == null) {
                     Toast.makeText(this, "YOU GOT NULL RESULT", Toast.LENGTH_SHORT).show()
-                }
-                else{
+                } else {
                     Toast.makeText(this, votingResultsKeys.elementAt(3), Toast.LENGTH_SHORT).show()
                 }
-//                val vR = Toast.makeText(this, votingResults?.get(1)?.toString(), Toast.LENGTH_SHORT)
-//                vR.show()
-
             }
-            // if (result.resultCode == Activity.RESULT_CANCELED) {
+        }
+
+        showVotingResults.setOnClickListener {
+            val showResults = showVotingResults.isChecked
+            if (showResults) {
+                // Display existing total voting results if available
+                displayTotalResults(showScoreField)
+            } else {
+                // Clear the result view if showVotingResults is off
+                showScoreField.text = ""
+            }
         }
     }
 
-        override fun onSaveInstanceState(outState: Bundle) {
-            outState.putString("message", "This is my message to be reloaded")
-            super.onSaveInstanceState(outState)
+        private fun displayTotalResults(showScoreField: TextView) {
+            if (totalVotingResult.isEmpty()) {
+                showScoreField.text = getString(R.string.no_results_yet)
+                showScoreField.setPadding(8, 8, 0, 0)
+            } else {
+                // Build a string to display results (consider formatting)
+            }
         }
+
+        private fun splitAndUppercase(input: String): Array<String> {
+            return input.split(",")
+                .map { word ->
+                    word.trim().replaceFirstChar { it.uppercase() }
+                }
+                .toTypedArray()
+        }
+
+//        private fun updateTotalScore(obtainedVote: HashMap<String, Int>){
+//
+//        }
+//        override fun onSaveInstanceState(outState: Bundle) {
+//            outState.putString("message", "This is my message to be reloaded")
+//            super.onSaveInstanceState(outState)
+//        }
     }
