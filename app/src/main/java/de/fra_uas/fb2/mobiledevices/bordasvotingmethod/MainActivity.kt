@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private var totalVotingResult = HashMap<String, Int>()
     private var toVotingActivity = Bundle()
     private var voteCnt = 0
+    private val maxOptionsNum = 10
+    private val minOptionsNum = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +48,15 @@ class MainActivity : AppCompatActivity() {
 
         addVoteButton.setOnClickListener {
             val intent = Intent(this, ActivityVote::class.java)
+
+            val newOptNum = votingOptNum.text.toString().toIntOrNull()
+            if (newOptNum != null) {
+                if(newOptNum < minOptionsNum){
+                    votingOptNum.setText(minOptionsNum.toString())
+                }else if(newOptNum > maxOptionsNum){
+                    votingOptNum.setText(maxOptionsNum.toString())
+                }
+            }
 
             val votingOptInput = votingOpt.text.toString()
 
@@ -75,6 +86,7 @@ class MainActivity : AppCompatActivity() {
             totalVotingResult.clear()
 
             // update display
+            showVotingResults.isChecked = false
             displayTotalResults(showVotingResults, showScoreField)
             Toast.makeText(this, getString(R.string.votes_reset), Toast.LENGTH_SHORT).show()
         }
@@ -88,13 +100,29 @@ class MainActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(editable: Editable?) {
                 // This method is called after the text has changed
+                // clear number of given votes
+                voteCnt = 0
+                votesCntView.text = voteCnt.toString()
 
-                val newOptNum = votingOptNum.text.toString().toIntOrNull()
-                if (newOptNum != null) {
-                    if(newOptNum < 2){
-                        votingOptNum.setText("2")
-                    }
-                }
+                // clear voting results
+                totalVotingResult.clear()
+
+                // update display
+                showVotingResults.isChecked = false
+                displayTotalResults(showVotingResults, showScoreField)
+                Toast.makeText(this@MainActivity, getString(R.string.votes_reset), Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        votingOpt.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // This method is called before the text changes
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // This method is called every time the text changes
+            }
+            override fun afterTextChanged(editable: Editable?) {
+                // This method is called after the text has changed
 
                 // clear number of given votes
                 voteCnt = 0
@@ -104,6 +132,7 @@ class MainActivity : AppCompatActivity() {
                 totalVotingResult.clear()
 
                 // update display
+                showVotingResults.isChecked = false
                 displayTotalResults(showVotingResults, showScoreField)
                 Toast.makeText(this@MainActivity, getString(R.string.votes_reset), Toast.LENGTH_SHORT).show()
             }
