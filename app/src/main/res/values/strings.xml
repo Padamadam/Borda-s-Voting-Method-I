@@ -20,9 +20,12 @@
     <string name="voting_options">Voting options:</string>
     <string name="enter_all_options_seperated_by_comma">Enter all options separated by comma!</string>
     <string name="number_of_votes_so_far">Number of votes so far:</string>
+    <string name="votes_reset">All votes are reset!</string>
+    <string name="invalid_data">Invalid voting results data</string>
 
 <!--    activity_vote -->
     <string name="cancel">CANCEL</string>
+    <string name="vote_cancelled">"Vote has been cancelled!"</string>
     <string name="confirm_your_vote">CONFIRM YOUR VOTE</string>
     <string name="your_preferences">Your preferences</string>
     <string name="your_borda_vote">Your Borda Vote</string>

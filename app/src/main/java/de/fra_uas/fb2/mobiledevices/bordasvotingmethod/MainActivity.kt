@@ -3,6 +3,8 @@ package de.fra_uas.fb2.mobiledevices.bordasvotingmethod
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Switch
@@ -22,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var getResult: ActivityResultLauncher<Intent>
     private var totalVotingResult = HashMap<String, Int>()
     private var toVotingActivity = Bundle()
+    private var voteCnt = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +36,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        var voteCnt = 0
         val votingOpt = findViewById<EditText>(R.id.editVotingOpt)
         val votingOptNum = findViewById<EditText>(R.id.editOptNumber)
         val addVoteButton = findViewById<Button>(R.id.addVoteButton)
@@ -45,18 +47,10 @@ class MainActivity : AppCompatActivity() {
         addVoteButton.setOnClickListener {
             val intent = Intent(this, ActivityVote::class.java)
 
-            // Read new voting options input
             val votingOptInput = votingOpt.text.toString()
 
-            // Check if input is empty (avoid empty string)
-//            if (votingOptInput.isEmpty()) {
-//                val toast = Toast.makeText(this, getString(R.string.no_voting_options), Toast.LENGTH_SHORT)
-//                toast.show()
-//            } else
             if (votingOptNum.text.toString().isEmpty()) {
-                val toast =
-                    Toast.makeText(this, getString(R.string.no_voting_opt_number), Toast.LENGTH_SHORT)
-                toast.show()
+                Toast.makeText(this, getString(R.string.no_voting_opt_number), Toast.LENGTH_SHORT).show()
             } else {
                 val votingOptArray: Array<String> = splitAndUppercase(votingOptInput)
                 toVotingActivity.putStringArray("votingOpts", votingOptArray)
@@ -82,10 +76,38 @@ class MainActivity : AppCompatActivity() {
 
             // update display
             displayTotalResults(showVotingResults, showScoreField)
-
+            Toast.makeText(this, getString(R.string.votes_reset), Toast.LENGTH_SHORT).show()
         }
 
+        votingOptNum.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // This method is called before the text changes
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // This method is called every time the text changes
+            }
+            override fun afterTextChanged(editable: Editable?) {
+                // This method is called after the text has changed
 
+                val newOptNum = votingOptNum.text.toString().toIntOrNull()
+                if (newOptNum != null) {
+                    if(newOptNum < 2){
+                        votingOptNum.setText("2")
+                    }
+                }
+
+                // clear number of given votes
+                voteCnt = 0
+                votesCntView.text = voteCnt.toString()
+
+                // clear voting results
+                totalVotingResult.clear()
+
+                // update display
+                displayTotalResults(showVotingResults, showScoreField)
+                Toast.makeText(this@MainActivity, getString(R.string.votes_reset), Toast.LENGTH_SHORT).show()
+            }
+        })
 
         getResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -113,7 +135,7 @@ class MainActivity : AppCompatActivity() {
                     displayTotalResults(showVotingResults, showScoreField)
 
                 } else {
-                    Toast.makeText(this, "Invalid voting results data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.invalid_data), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -129,12 +151,15 @@ class MainActivity : AppCompatActivity() {
             if (totalVotingResult.isEmpty()) {
                 message = getString(R.string.no_results_yet)
             } else {
-                val sortedBordaPoints = totalVotingResult.entries.sortedBy { it.value }.toMutableList()
+                val winningOptionScore = totalVotingResult.values.max()
+                val sortedBordaPoints = totalVotingResult.entries.sortedByDescending { it.value }.toMutableList()
                 for (entry in sortedBordaPoints) {
                     val key = entry.key
                     val value = entry.value
                     message += if (value == -1) {
                         "$key ${getString(R.string.not_unique)}\n"
+                    }else if(value == winningOptionScore){
+                        "*** $key --> $value ***\n"
                     } else {
                         "$key --> $value\n"
                     }

@@ -2,6 +2,7 @@ package de.fra_uas.fb2.mobiledevices.bordasvotingmethod
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.SeekBar
@@ -34,15 +35,12 @@ class ActivityVote : AppCompatActivity() {
         val votingOptInput: Array<out String>? = b?.getStringArray("votingOpts")
         val votingOptNum: Int? = b?.getString("votingOptNum")?.toInt()
 
-//        // DEBUG TOOL - TO BE REMOVED
-//        val toast = Toast.makeText(this, votingOptInput?.get(0), Toast.LENGTH_SHORT)
-//        toast.show()
-
         if (votingOptNum != null) {
             generateSeekBars(votingOptInput, votingOptNum, sliderContainer)
         }
 
         cancelButton.setOnClickListener{
+            Toast.makeText(this, getString(R.string.vote_cancelled), Toast.LENGTH_SHORT).show()
             finish()
         }
 
@@ -50,7 +48,7 @@ class ActivityVote : AppCompatActivity() {
             if (isArrayUnique(bordaPoints.values.toIntArray())) {
                 val data = Intent()
 
-                val sortedBordaPoints = bordaPoints.entries.sortedBy { it.value }.toMutableList()
+                val sortedBordaPoints = bordaPoints.entries.sortedByDescending { it.value }.toMutableList()
                 val sortedKeys = sortedBordaPoints.map { it.key }.toTypedArray()
                 val sortedValues = sortedBordaPoints.map { it.value }.toIntArray()
 
@@ -75,11 +73,10 @@ class ActivityVote : AppCompatActivity() {
             votingOptionsMap[optionLabel.text.toString()] = seekBar.progress
         }
 
-        // Ascending order
-        val sortedEntries = votingOptionsMap.entries.sortedBy { it.value }.toMutableList()
+        // Descending order
+        val sortedEntries = votingOptionsMap.entries.sortedByDescending { it.value }.toMutableList()
 
         val duplicates = getDuplicates(sortedEntries.map { it.value })
-
 
         for (i in sortedEntries.indices) {
             val entry = sortedEntries[i]
@@ -159,7 +156,7 @@ class ActivityVote : AppCompatActivity() {
         val resultsText = findViewById<TextView>(R.id.votePoints)
         var message = ""
 
-        val sortedBordaPoints = bordaPoints.entries.sortedBy { it.value }.toMutableList()
+        val sortedBordaPoints = bordaPoints.entries.sortedByDescending { it.value }.toMutableList()
 
         for (entry in sortedBordaPoints) {
             val key = entry.key
@@ -172,5 +169,6 @@ class ActivityVote : AppCompatActivity() {
         }
         resultsText.text = message
         resultsText.setPadding(8, 0, 0, 0)
+        resultsText.setGravity(Gravity.CENTER_HORIZONTAL)
     }
 }
