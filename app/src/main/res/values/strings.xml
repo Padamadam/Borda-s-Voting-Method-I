@@ -7,7 +7,7 @@
     <string name="no_results_yet">No voting results yet</string>
     <string name="not_unique"> --> &#60;not unique
 &#62;</string>
-    <string name="option">Option</string>
+    <string name="option">Option </string>
     <string name="not_unique_toast">The votes are not unique!</string>
 
 <!--    activity_main -->

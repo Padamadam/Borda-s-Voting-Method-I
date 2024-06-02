@@ -102,7 +102,7 @@ class ActivityVote : AppCompatActivity() {
                     val optionLabel = TextView(this)
                     // access 0 in order to prevent out of bound access
                     if(splitVotingInput[0].isEmpty() && i == 0){
-                        optionLabel.text = getString(R.string.option) + " 0"
+                        optionLabel.text = getString(R.string.option) + " 1"
                     }else if(i+1 <= splitVotingInput.size) {
                         optionLabel.text = splitVotingInput[i]
                     }else{
@@ -142,10 +142,11 @@ class ActivityVote : AppCompatActivity() {
         val repeatedValues = mutableListOf<Int>()
 
         for (value in sliderScore) {
-            val currentCount = valueCounts.getOrDefault(value, 0) // Get existing count (0 if not present)
+            // Get existing count (0 if not present)
+            val currentCount = valueCounts.getOrDefault(value, 0)
             valueCounts[value] = currentCount + 1 // Update count
-
-            if (currentCount > 0) { // Check if this is the second or more occurrence
+            // Check if this is the second or more occurrence
+            if (currentCount > 0) {
                 repeatedValues.add(value)
             }
         }

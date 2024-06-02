@@ -123,7 +123,6 @@ class MainActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(editable: Editable?) {
                 // This method is called after the text has changed
-
                 // clear number of given votes
                 voteCnt = 0
                 votesCntView.text = voteCnt.toString()
@@ -148,6 +147,7 @@ class MainActivity : AppCompatActivity() {
                 val votingResultsKeys = b?.getStringArray("votingResultsKeys")
                 val votingResultsValues = b?.getIntArray("votingResultsValues")
 
+                // merge obtained keys and values into one map
                 if (votingResultsKeys != null && votingResultsValues != null &&
                     votingResultsKeys.size == votingResultsValues.size) {
                     val obtainedVote = HashMap<String, Int>()
@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity() {
                     displayTotalResults(showVotingResults, showScoreField)
 
                 } else {
+                    // ActivityResult returned error
                     Toast.makeText(this, getString(R.string.invalid_data), Toast.LENGTH_SHORT).show()
                 }
             }
@@ -180,12 +181,15 @@ class MainActivity : AppCompatActivity() {
             if (totalVotingResult.isEmpty()) {
                 message = getString(R.string.no_results_yet)
             } else {
+                // highlight option with the highest score
                 val winningOptionScore = totalVotingResult.values.max()
+                // sort options by their score
                 val sortedBordaPoints = totalVotingResult.entries.sortedByDescending { it.value }.toMutableList()
                 for (entry in sortedBordaPoints) {
                     val key = entry.key
                     val value = entry.value
                     message += if (value == -1) {
+                        // handle the not unique vote in case it was returned from the vote activity
                         "$key ${getString(R.string.not_unique)}\n"
                     }else if(value == winningOptionScore){
                         "*** $key --> $value ***\n"
@@ -202,6 +206,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // splits the input on voting options
     private fun splitAndUppercase(input: String): Array<String> {
         return input.split(",")
             .map { word ->
